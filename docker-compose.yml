@@ -1,0 +1,33 @@
+# /opt/bitnami/kafka/bin/connect-standalone.sh /bitnami/kafka/config/connect-standalone.properties /bitnami/kafka/config/connect-mongo-users.properties
+# /opt/bitnami/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic data.test.users --property print.key=true --property print.value=true --property key.separator="="
+services:
+  kafka:
+    image: docker.io/bitnami/kafka:4.0
+    ports:
+      - 9093:9093
+    environment:
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_HEAP_OPTS=-Xmx4g -Xms4g
+    volumes:
+      - .docker/plugins:/bitnami/kafka/plugins
+      - .docker/config:/bitnami/kafka/config
+    networks:
+      - kafka
+
+  mongo:
+    image: mongodb/mongodb-atlas-local:8.0
+    hostname: rs0 # This sets the replicaset name
+    ports:
+      - 27017:27017
+    environment:
+      - DO_NOT_TRACK=1
+    networks:
+      - kafka
+
+networks:
+  kafka:
